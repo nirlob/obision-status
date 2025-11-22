@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="resources_container">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkLabel" id="resources_title">
+        <property name="label" translatable="yes">System Resources</property>
+        <property name="halign">start</property>
+        <style>
+          <class name="title-1"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="resources_description">
+        <property name="label" translatable="yes">CPU, Memory, and Disk usage will be displayed here</property>
+        <property name="halign">start</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="margin-top">12</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">CPU Usage</property>
+                <property name="halign">start</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="cpu_progress">
+                <property name="fraction">0.45</property>
+                <property name="show-text">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">Memory Usage</property>
+                <property name="halign">start</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="memory_progress">
+                <property name="fraction">0.65</property>
+                <property name="show-text">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

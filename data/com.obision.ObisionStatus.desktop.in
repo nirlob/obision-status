@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Obision Status
+Comment=A modern system status and monitoring application
+Icon=@app_id@
+Exec=obision-status
+Terminal=false
+Categories=System;Monitor;Utility;
+StartupNotify=true
+StartupWMClass=@app_id@

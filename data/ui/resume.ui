@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="resume_container">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkLabel" id="resume_title">
+        <property name="label" translatable="yes">System Resume</property>
+        <property name="halign">start</property>
+        <style>
+          <class name="title-1"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkLabel" id="resume_description">
+        <property name="label" translatable="yes">Overview of system status</property>
+        <property name="halign">start</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="margin-top">12</property>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">horizontal</property>
+            <property name="spacing">12</property>
+            <property name="homogeneous">true</property>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="halign">center</property>
+                <style>
+                  <class name="card"/>
+                </style>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">CPU</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="cpu_chart">
+                    <property name="width-request">120</property>
+                    <property name="height-request">120</property>
+                    <property name="halign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="cpu_value">
+                    <property name="label">--</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-2"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="halign">center</property>
+                <style>
+                  <class name="card"/>
+                </style>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Memory</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="memory_chart">
+                    <property name="width-request">120</property>
+                    <property name="height-request">120</property>
+                    <property name="halign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="memory_value">
+                    <property name="label">--</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-2"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">System Information</property>
+                <property name="halign">start</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="system_info_value">
+                <property name="label">Loading...</property>
+                <property name="halign">start</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

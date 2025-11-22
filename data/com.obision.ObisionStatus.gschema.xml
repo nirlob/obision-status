@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="obision-status">
+  <schema id="com.obision.obision-status" path="/com/obision/obision-status/">
+    <key name="window-width" type="i">
+      <default>800</default>
+      <summary>Default window width</summary>
+      <description>The default width of the application window</description>
+    </key>
+    <key name="window-height" type="i">
+      <default>600</default>
+      <summary>Default window height</summary>
+      <description>The default height of the application window</description>
+    </key>
+    <key name="counter-value" type="i">
+      <default>0</default>
+      <summary>Counter value</summary>
+      <description>The current value of the counter</description>
+    </key>
+  </schema>
+</schemalist>

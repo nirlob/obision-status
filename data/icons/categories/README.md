@@ -1,0 +1,1 @@
+Para generar estos iconos he usado este prompt en copilot del navegador Edge: genera un icono de 128 pixels que represente herramientas del sistema operativo, ocupe todo el cuadrado y tenga el fondo transparente

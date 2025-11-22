@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="GtkBox" id="processes_container">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+  </object>
+</interface>

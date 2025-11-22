@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="50 50 924 924">
+  <defs>
+    <!-- Blue radial gradient fill -->
+    <radialGradient id="blueGrad" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#3aa1ff" />
+      <stop offset="100%" stop-color="#0b4da8" />
+    </radialGradient>
+
+    <!-- Subtle brass rim gradient -->
+    <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2c471" />
+      <stop offset="50%" stop-color="#b68a2e" />
+      <stop offset="100%" stop-color="#8a6a23" />
+    </linearGradient>
+
+    <!-- Inner shadow for depth -->
+    <radialGradient id="innerShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="75%" stop-color="rgba(0,0,0,0)" />
+      <stop offset="100%" stop-color="rgba(0,0,0,0.25)" />
+    </radialGradient>
+
+    <!-- Screw head gradient -->
+    <linearGradient id="screwGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2c471" />
+      <stop offset="100%" stop-color="#6b5321" />
+    </linearGradient>
+  </defs>
+
+  <!-- Transparent background (nothing rendered) -->
+
+  <!-- Outer brass porthole ring -->
+  <g id="porthole">
+    <!-- Outer ring -->
+    <circle cx="512" cy="512" r="420" fill="url(#brassGrad)" />
+    <!-- Inner cutout to reveal blue area -->
+    <circle cx="512" cy="512" r="340" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" />
+    <!-- Inner bevel highlight -->
+    <circle cx="512" cy="512" r="380" fill="none" stroke="#e2c471" stroke-opacity="0.35" stroke-width="8" />
+    <!-- Edge shadow for depth -->
+    <circle cx="512" cy="512" r="420" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="14" />
+
+    <!-- Screws (8 evenly spaced) -->
+    <g id="screws" transform="translate(512,512)">
+      <!-- Functionally, we place at angles -->
+      <!-- Helper screw symbol -->
+      <g id="screw">
+        <circle cx="0" cy="-360" r="16" fill="url(#screwGrad)" stroke="#6b5321" stroke-width="2" />
+        <!-- Slot -->
+        <rect x="-10" y="-363" width="20" height="6" rx="2" fill="#6b5321" opacity="0.75" />
+      </g>
+      <use href="#screw" transform="rotate(45)" />
+      <use href="#screw" transform="rotate(90)" />
+      <use href="#screw" transform="rotate(135)" />
+      <use href="#screw" transform="rotate(180)" />
+      <use href="#screw" transform="rotate(225)" />
+      <use href="#screw" transform="rotate(270)" />
+      <use href="#screw" transform="rotate(315)" />
+    </g>
+
+    <!-- Left hinge -->
+    <g id="hinge" transform="translate(140,512)">
+      <!-- Back plate -->
+      <rect x="-10" y="-60" width="40" height="120" rx="6" fill="url(#brassGrad)" stroke="#6b5321" stroke-width="2" />
+      <!-- Knuckle -->
+      <rect x="30" y="-50" width="24" height="100" rx="6" fill="#b68a2e" stroke="#6b5321" stroke-width="2" />
+      <!-- Pin highlight -->
+      <rect x="40" y="-50" width="6" height="100" rx="3" fill="#e2c471" opacity="0.6" />
+      <!-- Mount screws -->
+      <circle cx="-0" cy="-40" r="8" fill="url(#screwGrad)" stroke="#6b5321" stroke-width="1.5" />
+      <circle cx="0" cy="40" r="8" fill="url(#screwGrad)" stroke="#6b5321" stroke-width="1.5" />
+    </g>
+
+    <!-- Right latch -->
+    <g id="latch" transform="translate(884,512)">
+      <!-- Base plate -->
+      <rect x="-30" y="-50" width="44" height="100" rx="6" fill="url(#brassGrad)" stroke="#6b5321" stroke-width="2" />
+      <!-- Pivot rod -->
+      <rect x="-6" y="-40" width="12" height="80" rx="6" fill="#b68a2e" stroke="#6b5321" stroke-width="1.5" />
+      <!-- Hook -->
+      <path d="M 8,-20 C 40,-20 40,20 8,20" fill="none" stroke="#8a6a23" stroke-width="8" stroke-linecap="round" />
+      <!-- Mount screws -->
+      <circle cx="-18" cy="-30" r="7" fill="url(#screwGrad)" stroke="#6b5321" stroke-width="1.5" />
+      <circle cx="-18" cy="30" r="7" fill="url(#screwGrad)" stroke="#6b5321" stroke-width="1.5" />
+    </g>
+  </g>
+
+  <!-- Blue interior circle -->
+  <g id="interior">
+    <circle cx="512" cy="512" r="330" fill="url(#blueGrad)" />
+    <!-- Soft inner vignette -->
+    <circle cx="512" cy="512" r="330" fill="url(#innerShadow)" />
+  </g>
+
+  <!-- White install icon (box + arrow), centered -->
+  <g id="install-icon" transform="translate(512,512)">
+    <!-- Open box -->
+    <!-- Front panel -->
+    <path d="M -120,40 L 120,40 L 90,140 L -90,140 Z" fill="#ffffff" />
+    <!-- Left flap -->
+    <path d="M -120,40 L -200,-20 L -90,-60 L -30,40 Z" fill="#ffffff" />
+    <!-- Right flap -->
+    <path d="M 120,40 L 200,-20 L 90,-60 L 30,40 Z" fill="#ffffff" />
+    <!-- Back panel (slight inset) -->
+    <path d="M -90,140 L 90,140 L 70,60 L -70,60 Z" fill="#ffffff" />
+
+    <!-- Down arrow -->
+    <path d="M -60,-200 L 60,-200 L 60,-120 L 120,-120 L 0,0 L -120,-120 L -60,-120 Z"
+          fill="#ffffff" />
+  </g>
+</svg>
