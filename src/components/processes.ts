@@ -31,23 +31,8 @@ export class ProcessesComponent {
     // Create container
     this.container = new Gtk.Box({
       orientation: Gtk.Orientation.VERTICAL,
-      spacing: 12,
+      spacing: 6,
     });
-    
-    // Title
-    const title = new Gtk.Label({
-      label: 'Running Processes',
-      halign: Gtk.Align.START,
-    });
-    title.add_css_class('title-1');
-    this.container.append(title);
-    
-    // Description
-    const description = new Gtk.Label({
-      label: 'Click column headers to sort',
-      halign: Gtk.Align.START,
-    });
-    this.container.append(description);
     
     // Header row with sorting buttons
     const headerBox = new Gtk.Box({
@@ -55,6 +40,7 @@ export class ProcessesComponent {
       spacing: 0,
       margin_start: 6,
       margin_end: 6,
+      margin_bottom: 3,
     });
     headerBox.add_css_class('toolbar');
     
@@ -90,32 +76,36 @@ export class ProcessesComponent {
     scrolled.set_child(this.listBox);
     this.container.append(scrolled);
     
-    // Bottom panel with totals - fixed at bottom, no expand
+    // Bottom panel with totals in a card
+    const totalsCard = new Gtk.Frame({
+      margin_top: 12,
+      vexpand: false,
+    });
+    totalsCard.add_css_class('view');
+    
     const bottomPanel = new Gtk.Box({
       orientation: Gtk.Orientation.HORIZONTAL,
       spacing: 24,
       margin_start: 12,
       margin_end: 12,
       margin_top: 12,
-      margin_bottom: 6,
+      margin_bottom: 12,
       halign: Gtk.Align.CENTER,
       vexpand: false,
     });
-    bottomPanel.add_css_class('toolbar');
     
     const cpuTotalBox = new Gtk.Box({
       orientation: Gtk.Orientation.HORIZONTAL,
       spacing: 6,
     });
     const cpuIcon = new Gtk.Image({
-      icon_name: 'cpu-symbolic',
+      icon_name: 'drive-harddisk-solidstate-symbolic',
       pixel_size: 16,
     });
     cpuTotalBox.append(cpuIcon);
     this.totalCpuLabel = new Gtk.Label({
       label: 'Total CPU: 0.0%',
     });
-    this.totalCpuLabel.add_css_class('caption');
     cpuTotalBox.append(this.totalCpuLabel);
     bottomPanel.append(cpuTotalBox);
     
@@ -124,18 +114,18 @@ export class ProcessesComponent {
       spacing: 6,
     });
     const memIcon = new Gtk.Image({
-      icon_name: 'memory-symbolic',
+      icon_name: 'auth-sim-symbolic',
       pixel_size: 16,
     });
     memTotalBox.append(memIcon);
     this.totalMemoryLabel = new Gtk.Label({
       label: 'Total Memory: 0 MB',
     });
-    this.totalMemoryLabel.add_css_class('caption');
     memTotalBox.append(this.totalMemoryLabel);
     bottomPanel.append(memTotalBox);
     
-    this.container.append(bottomPanel);
+    totalsCard.set_child(bottomPanel);
+    this.container.append(totalsCard);
     
     // Load initial data
     this.loadProcesses();

@@ -29,6 +29,7 @@ export class DiskComponent {
     private totalReadLabel: Gtk.Label;
     private totalWriteLabel: Gtk.Label;
     private filesystemsGroup: Adw.PreferencesGroup;
+    private physicalDrivesGroup: Adw.PreferencesGroup;
     private utils: UtilsService;
     private updateTimeoutId: number | null = null;
     private readHistory: number[] = [];
@@ -55,6 +56,7 @@ export class DiskComponent {
         this.totalReadLabel = builder.get_object('total_read_label') as Gtk.Label;
         this.totalWriteLabel = builder.get_object('total_write_label') as Gtk.Label;
         this.filesystemsGroup = builder.get_object('disk_filesystems_group') as Adw.PreferencesGroup;
+        this.physicalDrivesGroup = builder.get_object('disk_physical_group') as Adw.PreferencesGroup;
 
         // Initialize history arrays
         for (let i = 0; i < 60; i++) {
@@ -64,6 +66,7 @@ export class DiskComponent {
 
         this.setupChart();
         this.loadFilesystems();
+        this.loadPhysicalDrives();
         this.updateData();
 
         // Update every 2 seconds
@@ -368,6 +371,132 @@ export class DiskComponent {
         }
 
         return stats;
+    }
+
+    private loadPhysicalDrives(): void {
+        try {
+            // Get list of physical drives
+            const [lsblkOut] = this.utils.executeCommand('lsblk', ['-d', '-o', 'NAME,MODEL,SIZE,ROTA,TYPE', '-n']);
+            const lines = lsblkOut.trim().split('\n');
+
+            for (const line of lines) {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length >= 4) {
+                    const device = parts[0];
+                    const type = parts[parts.length - 1];
+                    
+                    // Only show disk type (not partitions)
+                    if (type === 'disk') {
+                        const model = parts.slice(1, parts.length - 3).join(' ') || 'Unknown';
+                        const size = parts[parts.length - 3];
+                        const rota = parts[parts.length - 2];
+                        const driveType = rota === '1' ? 'HDD' : 'SSD';
+                        
+                        this.createPhysicalDriveRow(device, model, size, driveType);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading physical drives:', error);
+        }
+    }
+
+    private createPhysicalDriveRow(device: string, model: string, size: string, driveType: string): void {
+        const expanderRow = new Adw.ExpanderRow({
+            title: `/dev/${device}`,
+            subtitle: model,
+        });
+
+        // Drive Type (HDD/SSD)
+        const typeRow = new Adw.ActionRow({
+            title: 'Type',
+        });
+        const typeLabel = new Gtk.Label({
+            label: driveType,
+            css_classes: ['dim-label'],
+        });
+        typeRow.add_suffix(typeLabel);
+        expanderRow.add_row(typeRow);
+
+        // Size
+        const sizeRow = new Adw.ActionRow({
+            title: 'Size',
+        });
+        const sizeLabel = new Gtk.Label({
+            label: size,
+            css_classes: ['dim-label'],
+        });
+        sizeRow.add_suffix(sizeLabel);
+        expanderRow.add_row(sizeRow);
+
+        // Get additional information
+        try {
+            // Read/Write statistics
+            const stats = this.previousStats.get(device);
+            if (stats) {
+                const totalReadRow = new Adw.ActionRow({
+                    title: 'Total Read Operations',
+                });
+                const totalReadLabel = new Gtk.Label({
+                    label: stats.readOps.toString(),
+                    css_classes: ['dim-label'],
+                });
+                totalReadRow.add_suffix(totalReadLabel);
+                expanderRow.add_row(totalReadRow);
+
+                const totalWriteRow = new Adw.ActionRow({
+                    title: 'Total Write Operations',
+                });
+                const totalWriteLabel = new Gtk.Label({
+                    label: stats.writeOps.toString(),
+                    css_classes: ['dim-label'],
+                });
+                totalWriteRow.add_suffix(totalWriteLabel);
+                expanderRow.add_row(totalWriteRow);
+            }
+
+            // Try to get SMART status
+            try {
+                const [smartOut] = this.utils.executeCommand('smartctl', ['-H', `/dev/${device}`]);
+                const healthMatch = smartOut.match(/SMART overall-health self-assessment test result: (\w+)/);
+                if (healthMatch) {
+                    const healthRow = new Adw.ActionRow({
+                        title: 'SMART Health',
+                    });
+                    const healthLabel = new Gtk.Label({
+                        label: healthMatch[1],
+                        css_classes: ['dim-label'],
+                    });
+                    healthRow.add_suffix(healthLabel);
+                    expanderRow.add_row(healthRow);
+                }
+            } catch {
+                // SMART not available or requires sudo
+            }
+
+            // Get temperature if available
+            try {
+                const [tempOut] = this.utils.executeCommand('cat', [`/sys/block/${device}/device/hwmon/hwmon*/temp1_input`]);
+                const temp = parseInt(tempOut.trim()) / 1000;
+                if (!isNaN(temp)) {
+                    const tempRow = new Adw.ActionRow({
+                        title: 'Temperature',
+                    });
+                    const tempLabel = new Gtk.Label({
+                        label: `${temp.toFixed(1)}°C`,
+                        css_classes: ['dim-label'],
+                    });
+                    tempRow.add_suffix(tempLabel);
+                    expanderRow.add_row(tempRow);
+                }
+            } catch {
+                // Temperature not available
+            }
+        } catch (error) {
+            console.error(`Error getting details for ${device}:`, error);
+        }
+
+        this.physicalDrivesGroup.add(expanderRow);
     }
 
     public getWidget(): Gtk.Box {

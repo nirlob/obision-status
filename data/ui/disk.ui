@@ -53,19 +53,10 @@
             <property name="orientation">vertical</property>
             <property name="spacing">18</property>
             
-            <!-- Mounted Filesystems -->
-            <child>
-              <object class="AdwPreferencesGroup" id="disk_filesystems_group">
-                <property name="title">Mounted Filesystems</property>
-                <property name="description">Disk usage by partition</property>
-              </object>
-            </child>
-            
             <!-- I/O Statistics -->
             <child>
               <object class="AdwPreferencesGroup" id="disk_io_group">
                 <property name="title">I/O Statistics</property>
-                <property name="description">Read and write speeds</property>
                 
                 <child>
                   <object class="AdwActionRow" id="read_speed_row">
@@ -114,6 +105,20 @@
                     </child>
                   </object>
                 </child>
+              </object>
+            </child>
+            
+            <!-- Mounted Filesystems -->
+            <child>
+              <object class="AdwPreferencesGroup" id="disk_filesystems_group">
+                <property name="title">Mounted Filesystems</property>
+              </object>
+            </child>
+            
+            <!-- Physical Drives -->
+            <child>
+              <object class="AdwPreferencesGroup" id="disk_physical_group">
+                <property name="title">Physical Drives</property>
               </object>
             </child>
           </object>
