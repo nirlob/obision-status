@@ -44,16 +44,25 @@
                     </child>
                   </object>
                 </child>
+                <child type="top">
+                  <object class="GtkSeparator">
+                    <property name="orientation">horizontal</property>
+                  </object>
+                </child>
                 <property name="content">
-                  <object class="GtkBox" id="sidebar_content">
-                    <property name="orientation">vertical</property>
-                    <property name="spacing">4</property>
-                    <property name="margin-start">6</property>
-                    <property name="margin-end">6</property>
-                    <property name="margin-top">6</property>
-                    <property name="margin-bottom">6</property>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="vexpand">true</property>
                     <child>
-                      <object class="GtkButton" id="menu_option_0">
+                      <object class="GtkBox" id="sidebar_content">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">4</property>
+                        <property name="margin-start">6</property>
+                        <property name="margin-end">6</property>
+                        <property name="margin-top">6</property>
+                        <property name="margin-bottom">6</property>
+                        <child>
+                      <object class="GtkToggleButton" id="menu_option_0">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -83,7 +92,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_1">
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                        <property name="margin-top">2</property>
+                        <property name="margin-bottom">2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="menu_option_1">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -113,7 +129,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_2">
+                      <object class="GtkToggleButton" id="menu_option_2">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -143,7 +159,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_3">
+                      <object class="GtkToggleButton" id="menu_option_3">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -173,7 +189,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_4">
+                      <object class="GtkToggleButton" id="menu_option_4">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -203,7 +219,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_5">
+                      <object class="GtkToggleButton" id="menu_option_5">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -233,46 +249,14 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_6">
-                        <property name="halign">fill</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="orientation">horizontal</property>
-                            <property name="spacing">12</property>
-                            <property name="margin-start">6</property>
-                            <property name="margin-end">6</property>
-                            <property name="margin-top">8</property>
-                            <property name="margin-bottom">8</property>
-                            <child>
-                              <object class="GtkImage">
-                                <property name="icon-name">system-run-symbolic</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="label" translatable="yes">System Info</property>
-                                <property name="halign">start</property>
-                                <property name="hexpand">true</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkSeparator">
                         <property name="orientation">horizontal</property>
-                        <property name="margin-start">6</property>
-                        <property name="margin-end">6</property>
                         <property name="margin-top">2</property>
                         <property name="margin-bottom">2</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_7">
+                      <object class="GtkToggleButton" id="menu_option_7">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -302,7 +286,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_8">
+                      <object class="GtkToggleButton" id="menu_option_8">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -332,7 +316,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_9">
+                      <object class="GtkToggleButton" id="menu_option_9">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -362,7 +346,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_10">
+                      <object class="GtkToggleButton" id="menu_option_10">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -392,7 +376,44 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="menu_option_11">
+                      <object class="GtkSeparator">
+                        <property name="orientation">horizontal</property>
+                        <property name="margin-top">2</property>
+                        <property name="margin-bottom">2</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="menu_option_6">
+                        <property name="halign">fill</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">12</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">8</property>
+                            <property name="margin-bottom">8</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">system-run-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label" translatable="yes">System Info</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="menu_option_11">
                         <property name="halign">fill</property>
                         <style>
                           <class name="flat"/>
@@ -422,6 +443,8 @@
                       </object>
                     </child>
                   </object>
+                    </child>
+                  </object>
                 </property>
               </object>
             </property>
@@ -434,6 +457,14 @@
               <object class="AdwToolbarView">
                 <child type="top">
                   <object class="AdwHeaderBar" id="content_header_bar">
+                    <property name="title-widget">
+                      <object class="GtkLabel" id="content_title">
+                        <property name="label">Resume</property>
+                        <style>
+                          <class name="title"/>
+                        </style>
+                      </object>
+                    </property>
                     <child type="start">
                       <object class="GtkButton" id="action_button">
                         <property name="label" translatable="yes">Action</property>

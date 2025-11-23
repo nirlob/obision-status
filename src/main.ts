@@ -111,64 +111,89 @@ class ObisionStatusApplication {
 
     // Get UI elements
     const mainContent = builder.get_object('main_content') as Gtk.Box;
+    const contentTitle = builder.get_object('content_title') as Gtk.Label;
     
     // Get navigation buttons
-    const menuButton0 = builder.get_object('menu_option_0') as Gtk.Button;
-    const menuButton1 = builder.get_object('menu_option_1') as Gtk.Button;
-    const menuButton2 = builder.get_object('menu_option_2') as Gtk.Button;
-    const menuButton3 = builder.get_object('menu_option_3') as Gtk.Button;
-    const menuButton4 = builder.get_object('menu_option_4') as Gtk.Button;
-    const menuButton5 = builder.get_object('menu_option_5') as Gtk.Button;
-        const menuButton6 = builder.get_object('menu_option_6') as Gtk.Button;
-        const menuButton7 = builder.get_object('menu_option_7') as Gtk.Button;
-        const menuButton8 = builder.get_object('menu_option_8') as Gtk.Button;
-        const menuButton9 = builder.get_object('menu_option_9') as Gtk.Button;
-        const menuButton10 = builder.get_object('menu_option_10') as Gtk.Button;
-        const menuButton11 = builder.get_object('menu_option_11') as Gtk.Button;    // Setup navigation
+    const menuButton0 = builder.get_object('menu_option_0') as Gtk.ToggleButton;
+    const menuButton1 = builder.get_object('menu_option_1') as Gtk.ToggleButton;
+    const menuButton2 = builder.get_object('menu_option_2') as Gtk.ToggleButton;
+    const menuButton3 = builder.get_object('menu_option_3') as Gtk.ToggleButton;
+    const menuButton4 = builder.get_object('menu_option_4') as Gtk.ToggleButton;
+    const menuButton5 = builder.get_object('menu_option_5') as Gtk.ToggleButton;
+        const menuButton6 = builder.get_object('menu_option_6') as Gtk.ToggleButton;
+        const menuButton7 = builder.get_object('menu_option_7') as Gtk.ToggleButton;
+        const menuButton8 = builder.get_object('menu_option_8') as Gtk.ToggleButton;
+        const menuButton9 = builder.get_object('menu_option_9') as Gtk.ToggleButton;
+        const menuButton10 = builder.get_object('menu_option_10') as Gtk.ToggleButton;
+        const menuButton11 = builder.get_object('menu_option_11') as Gtk.ToggleButton;
+    
+    // Store all menu buttons for selection management
+    const allMenuButtons = [menuButton0, menuButton1, menuButton2, menuButton3, menuButton4, menuButton5, menuButton6, menuButton7, menuButton8, menuButton9, menuButton10, menuButton11];
+    
+    // Setup navigation
     menuButton0.connect('clicked', () => {
-      this.onNavigationItemSelected(0, mainContent);
+      this.onNavigationItemSelected(0, mainContent, menuButton0, allMenuButtons, contentTitle);
     });
     menuButton1.connect('clicked', () => {
-      this.onNavigationItemSelected(1, mainContent);
+      this.onNavigationItemSelected(1, mainContent, menuButton1, allMenuButtons, contentTitle);
     });
     menuButton2.connect('clicked', () => {
-      this.onNavigationItemSelected(2, mainContent);
+      this.onNavigationItemSelected(2, mainContent, menuButton2, allMenuButtons, contentTitle);
     });
     menuButton3.connect('clicked', () => {
-      this.onNavigationItemSelected(3, mainContent);
+      this.onNavigationItemSelected(3, mainContent, menuButton3, allMenuButtons, contentTitle);
     });
     menuButton4.connect('clicked', () => {
-      this.onNavigationItemSelected(4, mainContent);
+      this.onNavigationItemSelected(4, mainContent, menuButton4, allMenuButtons, contentTitle);
     });
     menuButton5.connect('clicked', () => {
-      this.onNavigationItemSelected(5, mainContent);
+      this.onNavigationItemSelected(5, mainContent, menuButton5, allMenuButtons, contentTitle);
     });
     menuButton6.connect('clicked', () => {
-      this.onNavigationItemSelected(6, mainContent);
+      this.onNavigationItemSelected(6, mainContent, menuButton6, allMenuButtons, contentTitle);
     });
     menuButton7.connect('clicked', () => {
-      this.onNavigationItemSelected(7, mainContent);
+      this.onNavigationItemSelected(7, mainContent, menuButton7, allMenuButtons, contentTitle);
     });
     menuButton8.connect('clicked', () => {
-      this.onNavigationItemSelected(8, mainContent);
+      this.onNavigationItemSelected(8, mainContent, menuButton8, allMenuButtons, contentTitle);
     });
     menuButton9.connect('clicked', () => {
-      this.onNavigationItemSelected(9, mainContent);
+      this.onNavigationItemSelected(9, mainContent, menuButton9, allMenuButtons, contentTitle);
     });
     menuButton10.connect('clicked', () => {
-      this.onNavigationItemSelected(10, mainContent);
+      this.onNavigationItemSelected(10, mainContent, menuButton10, allMenuButtons, contentTitle);
     });
     menuButton11.connect('clicked', () => {
-      this.onNavigationItemSelected(11, mainContent);
+      this.onNavigationItemSelected(11, mainContent, menuButton11, allMenuButtons, contentTitle);
     });
 
     // Show first view by default
-    this.onNavigationItemSelected(0, mainContent);
+    this.onNavigationItemSelected(0, mainContent, menuButton0, allMenuButtons, contentTitle);
 
     return window;
   }
 
-  private onNavigationItemSelected(index: number, contentBox: Gtk.Box): void {
+  private onNavigationItemSelected(index: number, contentBox: Gtk.Box, selectedButton: Gtk.ToggleButton, allButtons: Gtk.ToggleButton[], titleLabel: Gtk.Label): void {
+    // Update button toggle state
+    allButtons.forEach(button => {
+      button.set_active(false);
+    });
+    selectedButton.set_active(true);
+    
+    // Get the label text from the button and set it as title
+    const buttonChild = selectedButton.get_child() as Gtk.Box;
+    if (buttonChild) {
+      let labelWidget = buttonChild.get_first_child();
+      while (labelWidget) {
+        if (labelWidget instanceof Gtk.Label) {
+          titleLabel.set_label(labelWidget.get_label() || '');
+          break;
+        }
+        labelWidget = labelWidget.get_next_sibling();
+      }
+    }
+    
     // Clear current content
     let child = contentBox.get_first_child();
     while (child) {
