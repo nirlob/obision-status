@@ -137,13 +137,17 @@ export class SystemInfoComponent {
             icon = 'drive-harddisk-solidstate-symbolic';
             break;
           case 'GPU':
-            title = result.index !== undefined ? `GPU ${result.index + 1}` : 'GPU';
-            result.forEach((gpu: {name: string, vendor: string}, index: number) => {
-              subtitle += `${gpu.vendor} ${gpu.name}`;
-              if (index < result.length - 1) {
-                subtitle += '\n';
-              }
-            });
+            title = 'GPU';
+            if (Array.isArray(result)) {
+              result.forEach((gpu: {name: string, vendor: string}, index: number) => {
+                subtitle += `${gpu.vendor} ${gpu.name}`;
+                if (index < result.length - 1) {
+                  subtitle += '\n';
+                }
+              });
+            } else if (result.name) {
+              subtitle = `${result.vendor || ''} ${result.name}`.trim();
+            }
             icon = 'video-display-symbolic';
             break;
           case 'Memory':

@@ -1,8 +1,7 @@
 import Gtk from '@girs/gtk-4.0';
 import Adw from '@girs/adw-1';
-import GLib from '@girs/glib-2.0';
+import { ResumeService, SystemData } from '../services/resume-service';
 import { UtilsService } from '../services/utils-service';
-import { SettingsService } from '../services/settings-service';
 
 export class ResumeComponent {
   private container: Gtk.Box;
@@ -28,10 +27,9 @@ export class ResumeComponent {
   private load15minBar!: Gtk.LevelBar;
   private topProcessesList!: Gtk.ListBox;
   private systemInfoList!: Gtk.ListBox;
-  private updateTimeoutId: number | null = null;
-  private settingsHandlerId: number | null = null;
+  private resumeService: ResumeService;
   private utils: UtilsService;
-  private settings: SettingsService;
+  private dataCallback!: (data: SystemData) => void;
   private cpuUsage: number = 0;
   private gpuUsage: number = 0;
   private memoryUsage: number = 0;
@@ -42,8 +40,8 @@ export class ResumeComponent {
   private gpuTemp: number = 0;
 
   constructor() {
+    this.resumeService = ResumeService.instance;
     this.utils = UtilsService.instance;
-    this.settings = SettingsService.instance;
     const builder = Gtk.Builder.new();
     
     try {
@@ -114,16 +112,125 @@ export class ResumeComponent {
       this.drawTemperatureChart(cr, width, height, this.gpuTemp);
     });
     
-    // Initial update
-    this.updateData();
+    // Subscribe to resume service updates
+    this.dataCallback = this.onDataUpdate.bind(this);
+    this.resumeService.subscribeToUpdates(this.dataCallback);
+  }
+
+  private onDataUpdate(data: SystemData): void {
+    // Update usage values
+    this.cpuUsage = data.cpu.usage;
+    this.gpuUsage = data.gpu.usage;
+    this.memoryUsage = data.memory.percentage;
+    this.diskUsage = data.disk.percentage;
+    this.cpuTemp = data.cpuTemp;
+    this.gpuTemp = data.gpuTemp;
     
-    // Setup update interval from settings
-    this.setupUpdateInterval();
+    // Update labels
+    this.cpuLabel.set_label(`${data.cpu.usage}%`);
+    this.gpuLabel.set_label(`${data.gpu.usage}%`);
+    this.memoryLabel.set_label(`${data.memory.percentage}%`);
+    this.diskLabel.set_label(`${data.disk.percentage}%`);
+    this.networkLabel.set_label(`↓ ${data.network.download}\n↑ ${data.network.upload}`);
+    this.cpuTempLabel.set_label(`${data.cpuTemp}°C`);
+    this.gpuTempLabel.set_label(`${data.gpuTemp}°C`);
     
-    // Listen for refresh interval changes
-    this.settingsHandlerId = this.settings.connectRefreshIntervalChanged(() => {
-      this.setupUpdateInterval();
+    // Update system load
+    this.load1minLabel.set_label(data.systemLoad.load1.toFixed(2));
+    this.load5minLabel.set_label(data.systemLoad.load5.toFixed(2));
+    this.load15minLabel.set_label(data.systemLoad.load15.toFixed(2));
+    this.load1minBar.set_value(data.systemLoad.load1);
+    this.load5minBar.set_value(data.systemLoad.load5);
+    this.load15minBar.set_value(data.systemLoad.load15);
+    
+    // Update top processes
+    let child = this.topProcessesList.get_first_child();
+    while (child) {
+      const next = child.get_next_sibling();
+      this.topProcessesList.remove(child);
+      child = next;
+    }
+    
+    for (const process of data.topProcesses) {
+      const row = new Gtk.Box({
+        orientation: Gtk.Orientation.HORIZONTAL,
+        spacing: 8,
+        margin_start: 8,
+        margin_end: 8,
+        margin_top: 4,
+        margin_bottom: 4,
+      });
+      
+      const nameLabel = new Gtk.Label({
+        label: process.name,
+        halign: Gtk.Align.START,
+        hexpand: true,
+        ellipsize: 3,
+        max_width_chars: 20,
+      });
+      
+      const cpuLabel = new Gtk.Label({
+        label: `${process.cpu.toFixed(1)}%`,
+        halign: Gtk.Align.END,
+      });
+      
+      row.append(nameLabel);
+      row.append(cpuLabel);
+      this.topProcessesList.append(row);
+    }
+    
+    // Update system info
+    child = this.systemInfoList.get_first_child();
+    while (child) {
+      const next = child.get_next_sibling();
+      this.systemInfoList.remove(child);
+      child = next;
+    }
+    
+    this.addSystemInfoRow('OS', data.systemInfo.os);
+    this.addSystemInfoRow('Kernel', data.systemInfo.kernel);
+    this.addSystemInfoRow('Uptime', data.systemInfo.uptime);
+    this.addSystemInfoRow('CPU', data.cpu.model);
+    this.addSystemInfoRow('Cores', `${data.cpu.cores}`);
+    this.addSystemInfoRow('GPU', data.gpu.name);
+    this.addSystemInfoRow('Memory', `${this.utils.formatBytes(data.memory.used)} / ${this.utils.formatBytes(data.memory.total)}`);
+    this.addSystemInfoRow('Disk', `${this.utils.formatBytes(data.disk.used)} / ${this.utils.formatBytes(data.disk.total)}`);
+    
+    // Redraw charts
+    this.cpuChart.queue_draw();
+    this.gpuChart.queue_draw();
+    this.memoryChart.queue_draw();
+    this.diskChart.queue_draw();
+    this.networkChart.queue_draw();
+    this.cpuTempChart.queue_draw();
+    this.gpuTempChart.queue_draw();
+  }
+  
+  private addSystemInfoRow(title: string, value: string): void {
+    const row = new Gtk.Box({
+      orientation: Gtk.Orientation.HORIZONTAL,
+      spacing: 8,
+      margin_start: 8,
+      margin_end: 8,
+      margin_top: 4,
+      margin_bottom: 4,
     });
+    
+    const titleLabel = new Gtk.Label({
+      label: title,
+      halign: Gtk.Align.START,
+      hexpand: true,
+    });
+    titleLabel.add_css_class('dim-label');
+    
+    const valueLabel = new Gtk.Label({
+      label: value,
+      halign: Gtk.Align.END,
+    });
+    
+    row.append(titleLabel);
+    row.append(valueLabel);
+    this.systemInfoList.append(row);
   }
 
   private drawCircularChart(cr: any, width: number, height: number, percentage: number): void {
@@ -206,301 +313,6 @@ export class ResumeComponent {
     cr.stroke();
   }
 
-  private updateData(): void {
-    this.updateCPU();
-    this.updateMemory();
-    this.updateDisk();
-    this.updateNetwork();
-    this.updateCpuTemperature();
-    this.updateGpuTemperature();
-    this.updateSystemLoad();
-    this.updateTopProcesses();
-    this.updateSystemInfo();
-  }
-
-  private prevIdle: number = 0;
-  private prevTotal: number = 0;
-
-  private updateCPU(): void {
-    try {
-      // Get CPU usage from /proc/stat
-      const [stdout] = this.utils.executeCommand('cat', ['/proc/stat']);
-      const lines = stdout.split('\n');
-      const cpuLine = lines.find(line => line.startsWith('cpu '));
-      
-      if (cpuLine) {
-        const values = cpuLine.split(/\s+/).slice(1).map(v => parseInt(v));
-        const idle = values[3] + values[4]; // idle + iowait
-        const total = values.reduce((a, b) => a + b, 0);
-        
-        if (this.prevTotal !== 0) {
-          const diffIdle = idle - this.prevIdle;
-          const diffTotal = total - this.prevTotal;
-          const usage = diffTotal > 0 ? Math.round(((diffTotal - diffIdle) / diffTotal) * 100) : 0;
-          this.cpuUsage = usage;
-          this.cpuLabel.set_label(`${usage}%`);
-          this.cpuChart.queue_draw();
-        }
-        
-        this.prevIdle = idle;
-        this.prevTotal = total;
-      }
-    } catch (e) {
-      console.error('Error updating CPU:', e);
-      this.cpuLabel.set_label('N/A');
-    }
-  }
-
-  private updateMemory(): void {
-    try {
-      const [stdout] = this.utils.executeCommand('free', ['-m']);
-      const lines = stdout.split('\n');
-      const memLine = lines.find(line => line.startsWith('Mem:'));
-      
-      if (memLine) {
-        const values = memLine.split(/\s+/);
-        const total = parseInt(values[1]);
-        const used = parseInt(values[2]);
-        const percentage = Math.round((used / total) * 100);
-        this.memoryUsage = percentage;
-        this.memoryLabel.set_label(`${percentage}%`);
-        this.memoryChart.queue_draw();
-      }
-    } catch (e) {
-      console.error('Error updating memory:', e);
-      this.memoryLabel.set_label('N/A');
-    }
-  }
-
-  private updateDisk(): void {
-    try {
-      const [stdout] = this.utils.executeCommand('df', ['-h', '/']);
-      const lines = stdout.split('\n');
-      if (lines.length > 1) {
-        const parts = lines[1].trim().split(/\s+/);
-        if (parts.length >= 5) {
-          const usePercent = parts[4].replace('%', '');
-          this.diskUsage = parseInt(usePercent) || 0;
-          this.diskLabel.set_label(`${this.diskUsage}%`);
-          this.diskChart.queue_draw();
-        }
-      }
-    } catch (e) {
-      console.error('Error updating disk:', e);
-      this.diskLabel.set_label('N/A');
-    }
-  }
-
-  private prevRxBytes: number = 0;
-  private prevTxBytes: number = 0;
-
-  private updateNetwork(): void {
-    try {
-      const [stdout] = this.utils.executeCommand('cat', ['/proc/net/dev']);
-      const lines = stdout.split('\n').slice(2);
-      
-      let totalRxBytes = 0;
-      let totalTxBytes = 0;
-      
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const parts = line.trim().split(/\s+/);
-        if (parts.length < 10) continue;
-        
-        const iface = parts[0].replace(':', '');
-        if (iface === 'lo') continue;
-        
-        totalRxBytes += parseInt(parts[1]) || 0;
-        totalTxBytes += parseInt(parts[9]) || 0;
-      }
-      
-      if (this.prevRxBytes !== 0) {
-        const rxDelta = totalRxBytes - this.prevRxBytes;
-        const txDelta = totalTxBytes - this.prevTxBytes;
-        
-        // Convert to Mbps (delta is over 10 seconds)
-        const downloadMbps = (rxDelta * 8) / (10 * 1000000);
-        const uploadMbps = (txDelta * 8) / (10 * 1000000);
-        const totalMbps = downloadMbps + uploadMbps;
-        
-        // Normalize to 0-100 scale (assuming 100 Mbps is 100%)
-        this.networkDownloadSpeed = Math.min(downloadMbps, 100);
-        this.networkUploadSpeed = Math.min(uploadMbps, 100);
-        
-        // Format label with both speeds
-        let downloadStr = '';
-        let uploadStr = '';
-        
-        if (downloadMbps < 1) {
-          downloadStr = `${(downloadMbps * 1000).toFixed(0)} Kbps`;
-        } else {
-          downloadStr = `${downloadMbps.toFixed(1)} Mbps`;
-        }
-        
-        if (uploadMbps < 1) {
-          uploadStr = `${(uploadMbps * 1000).toFixed(0)} Kbps`;
-        } else {
-          uploadStr = `${uploadMbps.toFixed(1)} Mbps`;
-        }
-        
-        this.networkLabel.set_label(`↓ ${downloadStr}\n↑ ${uploadStr}`);
-        this.networkChart.queue_draw();
-      }
-      
-      this.prevRxBytes = totalRxBytes;
-      this.prevTxBytes = totalTxBytes;
-    } catch (e) {
-      console.error('Error updating network:', e);
-      this.networkLabel.set_label('N/A');
-    }
-  }
-
-  private updateTopProcesses(): void {
-    try {
-      // Clear existing rows
-      let child = this.topProcessesList.get_first_child();
-      while (child) {
-        const next = child.get_next_sibling();
-        this.topProcessesList.remove(child);
-        child = next;
-      }
-      
-      // Get top 5 processes by CPU usage, excluding ps command
-      const [stdout] = this.utils.executeCommand('ps', ['axo', 'comm,%cpu', '--sort=-%cpu']);
-      const lines = stdout.trim().split('\n').slice(1); // Skip header
-      
-      const numCores = this.getNumCores();
-      let processCount = 0;
-      
-      for (let i = 0; i < lines.length && processCount < 5; i++) {
-        const line = lines[i].trim();
-        const match = line.match(/^(.+?)\s+([\d.]+)$/);
-        
-        if (match) {
-          const name = match[1];
-          
-          // Skip ps command
-          if (name === 'ps') {
-            continue;
-          }
-          
-          const cpuPercent = (parseFloat(match[2]) / numCores).toFixed(1);
-          
-          // Create row with horizontal box
-          const row = new Gtk.ListBoxRow();
-          const box = new Gtk.Box({
-            orientation: Gtk.Orientation.HORIZONTAL,
-            spacing: 12,
-            margin_start: 12,
-            margin_end: 12,
-            margin_top: 6,
-            margin_bottom: 6,
-          });
-          
-          const nameLabel = new Gtk.Label({
-            label: name,
-            halign: Gtk.Align.START,
-            hexpand: true,
-            ellipsize: 3, // ELLIPSIZE_END
-          });
-          
-          const cpuLabel = new Gtk.Label({
-            label: `${cpuPercent}%`,
-            css_classes: ['dim-label', 'monospace'],
-            halign: Gtk.Align.END,
-          });
-          
-          box.append(nameLabel);
-          box.append(cpuLabel);
-          row.set_child(box);
-          
-          this.topProcessesList.append(row);
-          processCount++;
-        }
-      }
-    } catch (e) {
-      console.error('Error updating top processes:', e);
-    }
-  }
-
-  private getNumCores(): number {
-    try {
-      const [stdout] = this.utils.executeCommand('nproc', []);
-      return parseInt(stdout.trim()) || 1;
-    } catch {
-      return 1;
-    }
-  }
-
-  private updateSystemInfo(): void {
-    try {
-      // Clear existing rows
-      let child = this.systemInfoList.get_first_child();
-      while (child) {
-        const next = child.get_next_sibling();
-        this.systemInfoList.remove(child);
-        child = next;
-      }
-      
-      // OS Information
-      const [osRelease] = this.utils.executeCommand('lsb_release', ['-ds']);
-      const [kernelVersion] = this.utils.executeCommand('uname', ['-r']);
-      
-      // Desktop Environment
-      const desktopEnv = GLib.getenv('XDG_CURRENT_DESKTOP') || 'Unknown';
-      
-      // Memory
-      const [memInfo] = this.utils.executeCommand('free', ['-h']);
-      const memLine = memInfo.split('\n').find(line => line.startsWith('Mem:'));
-      let totalMem = 'Unknown';
-      if (memLine) {
-        const values = memLine.split(/\s+/);
-        totalMem = values[1];
-      }
-      
-      // CPU Model
-      const [cpuInfo] = this.utils.executeCommand('cat', ['/proc/cpuinfo']);
-      const cpuModelLine = cpuInfo.split('\n').find(line => line.includes('model name'));
-      let cpuModel = 'Unknown';
-      if (cpuModelLine) {
-        cpuModel = cpuModelLine.split(':')[1].trim();
-      }
-      
-      // Hostname
-      const [hostname] = this.utils.executeCommand('hostname', []);
-      
-      // Uptime
-      const [uptimeInfo] = this.utils.executeCommand('uptime', ['-p']);
-      const uptime = uptimeInfo.trim().replace('up ', '');
-      
-      const os = osRelease.trim() || 'Linux';
-      const kernel = kernelVersion.trim();
-      const desktop = desktopEnv;
-      const host = hostname.trim();
-      
-      // Create AdwActionRow for each info item
-      const infoItems = [
-        { title: 'Hostname', value: host },
-        { title: 'Operating System', value: os },
-        { title: 'Kernel Version', value: kernel },
-        { title: 'Desktop Environment', value: desktop },
-        { title: 'Processor', value: cpuModel },
-        { title: 'Memory', value: totalMem },
-        { title: 'Uptime', value: uptime },
-      ];
-      
-      for (const item of infoItems) {
-        const row = new Adw.ActionRow({
-          title: item.title,
-          subtitle: item.value,
-        });
-        this.systemInfoList.append(row);
-      }
-    } catch (e) {
-      console.error('Error updating system info:', e);
-    }
-  }
-
   private drawTemperatureChart(cr: any, width: number, height: number, temperature: number): void {
     const centerX = width / 2;
     const centerY = height / 2;
@@ -539,122 +351,11 @@ export class ResumeComponent {
     cr.stroke();
   }
 
-  private updateCpuTemperature(): void {
-    try {
-      // Try to get CPU temperature from thermal zones
-      const [thermalData] = this.utils.executeCommand('cat', ['/sys/class/thermal/thermal_zone0/temp']);
-      if (thermalData) {
-        const tempMilliC = parseInt(thermalData.trim());
-        if (!isNaN(tempMilliC)) {
-          this.cpuTemp = Math.round(tempMilliC / 1000);
-          this.cpuTempLabel.set_label(`${this.cpuTemp}°C`);
-          this.cpuTempChart.queue_draw();
-          return;
-        }
-      }
-    } catch (e) {
-      // Fallback to sensors command
-      try {
-        const [sensorsOut] = this.utils.executeCommand('sensors', []);
-        const tempMatch = sensorsOut.match(/Core 0:\s+\+(\d+\.\d+)/);
-        if (tempMatch) {
-          this.cpuTemp = Math.round(parseFloat(tempMatch[1]));
-          this.cpuTempLabel.set_label(`${this.cpuTemp}°C`);
-          this.cpuTempChart.queue_draw();
-          return;
-        }
-      } catch (e2) {
-        console.error('Error reading CPU temperature:', e2);
-      }
-    }
-    
-    this.cpuTempLabel.set_label('N/A');
-  }
-
-  private updateGpuTemperature(): void {
-    try {
-      // Try nvidia-smi for NVIDIA GPUs
-      const [nvidiaOut] = this.utils.executeCommand('nvidia-smi', ['--query-gpu=temperature.gpu', '--format=csv,noheader']);
-      const temp = parseInt(nvidiaOut.trim());
-      if (!isNaN(temp)) {
-        this.gpuTemp = temp;
-        this.gpuTempLabel.set_label(`${this.gpuTemp}°C`);
-        this.gpuTempChart.queue_draw();
-        return;
-      }
-    } catch (e) {
-      // Fallback to sensors for AMD or integrated GPUs
-      try {
-        const [sensorsOut] = this.utils.executeCommand('sensors', []);
-        const tempMatch = sensorsOut.match(/edge:\s+\+(\d+\.\d+)/);
-        if (tempMatch) {
-          this.gpuTemp = Math.round(parseFloat(tempMatch[1]));
-          this.gpuTempLabel.set_label(`${this.gpuTemp}°C`);
-          this.gpuTempChart.queue_draw();
-          return;
-        }
-      } catch (e2) {
-        console.error('Error reading GPU temperature:', e2);
-      }
-    }
-    
-    this.gpuTempLabel.set_label('N/A');
-  }
-
-  private updateSystemLoad(): void {
-    try {
-      const [loadavg] = this.utils.executeCommand('cat', ['/proc/loadavg']);
-      const loads = loadavg.trim().split(/\s+/);
-      
-      if (loads.length >= 3) {
-        const load1 = parseFloat(loads[0]);
-        const load5 = parseFloat(loads[1]);
-        const load15 = parseFloat(loads[2]);
-        
-        this.load1minLabel.set_label(loads[0]);
-        this.load5minLabel.set_label(loads[1]);
-        this.load15minLabel.set_label(loads[2]);
-        
-        this.load1minBar.set_value(load1);
-        this.load5minBar.set_value(load5);
-        this.load15minBar.set_value(load15);
-      }
-    } catch (e) {
-      console.error('Error updating system load:', e);
-      this.load1minLabel.set_label('N/A');
-      this.load5minLabel.set_label('N/A');
-      this.load15minLabel.set_label('N/A');
-    }
-  }
-
   public getWidget(): Gtk.Box {
     return this.container;
   }
 
-  private setupUpdateInterval(): void {
-    // Remove existing timeout
-    if (this.updateTimeoutId !== null) {
-      GLib.source_remove(this.updateTimeoutId);
-      this.updateTimeoutId = null;
-    }
-    
-    // Setup new timeout with interval from settings (in milliseconds)
-    const intervalSeconds = this.settings.getRefreshInterval();
-    this.updateTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, intervalSeconds * 1000, () => {
-      this.updateData();
-      return GLib.SOURCE_CONTINUE;
-    });
-  }
-
   public destroy(): void {
-    if (this.updateTimeoutId !== null) {
-      GLib.source_remove(this.updateTimeoutId);
-      this.updateTimeoutId = null;
-    }
-    
-    if (this.settingsHandlerId !== null) {
-      this.settings.disconnect(this.settingsHandlerId);
-      this.settingsHandlerId = null;
-    }
+    this.resumeService.unsubscribe(this.dataCallback);
   }
 }

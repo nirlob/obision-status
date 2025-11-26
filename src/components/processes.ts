@@ -4,14 +4,7 @@ import Gio from '@girs/gio-2.0';
 import GLib from '@girs/glib-2.0';
 import Pango from '@girs/pango-1.0';
 import { UtilsService } from '../services/utils-service';
-
-interface ProcessInfo {
-  name: string;
-  pid: string;
-  cpu: number;
-  memory: number;
-  memoryKB: number;
-}
+import { ProcessesService, ProcessesData, ProcessInfo } from '../services/processes-service';
 
 export class ProcessesComponent {
   private container: Gtk.Box;
@@ -19,14 +12,16 @@ export class ProcessesComponent {
   private processes: ProcessInfo[] = [];
   private sortColumn: string = '';
   private sortAscending: boolean = false;
-  private updateTimeoutId: number | null = null;
   private utils: UtilsService;
+  private processesService: ProcessesService;
+  private dataCallback!: (data: ProcessesData) => void;
   private headerButtons: Map<string, Gtk.Button> = new Map();
   private totalCpuLabel!: Gtk.Label;
   private totalMemoryLabel!: Gtk.Label;
 
   constructor() {
     this.utils = UtilsService.instance;
+    this.processesService = ProcessesService.instance;
     
     // Create container
     this.container = new Gtk.Box({
@@ -127,14 +122,14 @@ export class ProcessesComponent {
     totalsCard.set_child(bottomPanel);
     this.container.append(totalsCard);
     
-    // Load initial data
-    this.loadProcesses();
+    // Subscribe to processes service
+    this.dataCallback = this.onDataUpdate.bind(this);
+    this.processesService.subscribeToUpdates(this.dataCallback);
     
-    // Update every 10 seconds
-    this.updateTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 10000, () => {
-      this.loadProcesses();
-      return GLib.SOURCE_CONTINUE;
-    });
+    // Set sort preferences
+    this.sortColumn = 'cpu';
+    this.sortAscending = false;
+    this.processesService.setSortColumn('cpu', false);
   }
 
   private createHeaderButton(label: string, column: string): Gtk.Button {
@@ -166,8 +161,8 @@ export class ProcessesComponent {
         this.sortColumn = column;
         this.sortAscending = true;
       }
+      this.processesService.setSortColumn(column, this.sortAscending);
       this.updateHeaderIcons();
-      this.displayProcesses();
     });
     
     this.headerButtons.set(column, button);
@@ -188,132 +183,25 @@ export class ProcessesComponent {
     });
   }
 
-  private loadProcesses(): void {
-    try {
-      // Get number of CPU cores
-      const [coresOutput] = this.utils.executeCommand('nproc', []);
-      const numCores = parseInt(coresOutput.trim()) || 1;
-      
-      // Only show processes from current user, get full command with args
-      // Use rss (resident set size) to get memory in KB
-      const [stdout] = this.utils.executeCommand('ps', ['xo', 'pid,%cpu,%mem,rss,args', '--sort=-%cpu', '--no-headers']);
-      const lines = stdout.trim().split('\n');
-      
-      this.processes = [];
-      
-      // Parse all non-kernel user processes
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
-        // Split into 5 parts: PID, CPU%, MEM%, RSS(KB), full command
-        const match = line.match(/^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(.+)$/);
-        
-        if (match) {
-          const pid = match[1];
-          // Normalize CPU percentage by number of cores (ps shows total across all cores)
-          const cpu = (parseFloat(match[2]) || 0) / numCores;
-          const memory = parseFloat(match[3]) || 0;
-          const memoryKB = parseInt(match[4]) || 0;
-          const fullCommand = match[5].trim();
-          
-          // Skip kernel threads (commands in brackets)
-          if (fullCommand.startsWith('[') && fullCommand.includes(']')) {
-            continue;
-          }
-          
-          // Extract clean process name from command
-          let name = fullCommand;
-          const firstArg = fullCommand.split(' ')[0];
-          
-          if (firstArg.includes('/')) {
-            // Extract filename from path
-            name = firstArg.substring(firstArg.lastIndexOf('/') + 1);
-          } else {
-            name = firstArg;
-          }
-          
-          // Skip ps command itself (check both name and full command)
-          if (name === 'ps' || fullCommand.startsWith('ps ') || fullCommand === 'ps') {
-            continue;
-          }
-          
-          // Limit length
-          if (name.length > 40) {
-            name = name.substring(0, 37) + '...';
-          }
-          
-          this.processes.push({
-            name,
-            pid,
-            cpu,
-            memory,
-            memoryKB
-          });
-        }
-      }
-      this.displayProcesses();
-      this.updateTotals();
-    } catch (e) {
-      console.error('Error loading processes:', e);
-    }
-  }
-
-  private updateTotals(): void {
+  private onDataUpdate(data: ProcessesData): void {
+    this.processes = data.processes;
+    this.displayProcesses();
+    
+    // Calculate totals from process data
     let totalCpu = 0;
     let totalMemoryKB = 0;
     
-    for (const process of this.processes) {
-      totalCpu += process.cpu;
-      totalMemoryKB += process.memoryKB;
+    for (const process of data.processes) {
+      totalCpu += parseFloat(process.cpu) || 0;
+      totalMemoryKB += parseInt(process.rss) || 0;
     }
     
-    // Cap total CPU at 100% and show as percentage of total capacity
-    const cappedCpu = Math.min(totalCpu, 100);
-    this.totalCpuLabel.set_label(`Total CPU: ${cappedCpu.toFixed(1)}%`);
-    
-    // Format total memory
-    let memoryText = '';
-    if (totalMemoryKB >= 1024 * 1024) {
-      memoryText = `${(totalMemoryKB / (1024 * 1024)).toFixed(1)} GB`;
-    } else if (totalMemoryKB >= 1024) {
-      memoryText = `${(totalMemoryKB / 1024).toFixed(1)} MB`;
-    } else {
-      memoryText = `${totalMemoryKB.toFixed(0)} KB`;
-    }
-    this.totalMemoryLabel.set_label(`Total Memory: ${memoryText}`);
+    this.totalCpuLabel.set_label(`Total CPU: ${totalCpu.toFixed(1)}%`);
+    this.totalMemoryLabel.set_label(`Total Memory: ${this.formatMemory(totalMemoryKB)}`);
   }
 
   private displayProcesses(): void {
-    // Sort processes only if a sort column is selected
-    if (this.sortColumn) {
-      this.processes.sort((a, b) => {
-        let valueA: any;
-        let valueB: any;
-        
-        // For memory, sort by memoryKB instead of percentage
-        if (this.sortColumn === 'memory') {
-          valueA = a.memoryKB;
-          valueB = b.memoryKB;
-        } else {
-          valueA = a[this.sortColumn as keyof ProcessInfo];
-          valueB = b[this.sortColumn as keyof ProcessInfo];
-          
-          // Handle string sorting (name)
-          if (this.sortColumn === 'name') {
-            valueA = valueA.toLowerCase();
-            valueB = valueB.toLowerCase();
-          }
-          // Handle numeric sorting for PID
-          else if (this.sortColumn === 'pid') {
-            valueA = parseInt(valueA);
-            valueB = parseInt(valueB);
-          }
-        }
-        
-        if (valueA < valueB) return this.sortAscending ? -1 : 1;
-        if (valueA > valueB) return this.sortAscending ? 1 : -1;
-        return 0;
-      });
-    }
+    // Note: Sorting is now handled by the service, no need to sort here
     
     
     // Clear current list
@@ -420,7 +308,7 @@ export class ProcessesComponent {
     });
     
     // Try to get icon from desktop files, fallback to generic
-    const iconName = this.getIconForProcess(process.name) || 'application-x-executable';
+    const iconName = this.getIconForProcess(process.command) || 'application-x-executable';
     
     const icon = new Gtk.Image({
       icon_name: iconName,
@@ -430,7 +318,7 @@ export class ProcessesComponent {
     box.append(icon);
     
     const nameLabel = new Gtk.Label({
-      label: process.name,
+      label: process.command,
       halign: Gtk.Align.START,
       hexpand: true,
       ellipsize: Pango.EllipsizeMode.END,
@@ -446,7 +334,7 @@ export class ProcessesComponent {
     box.append(pidLabel);
     
     const cpuLabel = new Gtk.Label({
-      label: `${process.cpu.toFixed(1)}%`,
+      label: `${parseFloat(process.cpu).toFixed(1)}%`,
       halign: Gtk.Align.END,
       xalign: 1.0,
     });
@@ -454,7 +342,7 @@ export class ProcessesComponent {
     box.append(cpuLabel);
     
     const memLabel = new Gtk.Label({
-      label: this.formatMemory(process.memoryKB),
+      label: this.formatMemory(parseInt(process.rss) || 0),
       halign: Gtk.Align.END,
       xalign: 1.0,
     });
@@ -470,9 +358,6 @@ export class ProcessesComponent {
   }
 
   public destroy(): void {
-    if (this.updateTimeoutId !== null) {
-      GLib.source_remove(this.updateTimeoutId);
-      this.updateTimeoutId = null;
-    }
+    this.processesService.unsubscribe(this.dataCallback);
   }
 }

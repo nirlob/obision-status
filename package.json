@@ -6,7 +6,7 @@
   "scripts": {
     "build": "node scripts/build.js && glib-compile-schemas data/",
     "dev": "tsc --watch",
-    "start": "npm run build && GSETTINGS_SCHEMA_DIR=data ./builddir/main.js",
+    "start": "npm run build && GSETTINGS_SCHEMA_DIR=builddir/data ./builddir/main.js",
     "clean": "rm -rf builddir && rm -rf mesonbuilddir",
     "meson-setup": "meson setup mesonbuilddir --prefix=/usr",
     "meson-compile": "meson compile -C mesonbuilddir",

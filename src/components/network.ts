@@ -1,15 +1,7 @@
 import Gtk from '@girs/gtk-4.0';
 import Adw from '@girs/adw-1';
-import GLib from '@girs/glib-2.0';
 import { UtilsService } from '../services/utils-service';
-
-interface NetworkStats {
-  interface: string;
-  rxBytes: number;
-  txBytes: number;
-  rxPackets: number;
-  txPackets: number;
-}
+import { NetworkService, NetworkData } from '../services/network-service';
 
 export class NetworkComponent {
   private container: Gtk.Box;
@@ -19,16 +11,17 @@ export class NetworkComponent {
   private networkUploadSpeed!: Gtk.Label;
   private networkTotalDownload!: Gtk.Label;
   private networkTotalUpload!: Gtk.Label;
-  private updateTimeoutId: number | null = null;
   private utils: UtilsService;
+  private networkService: NetworkService;
+  private dataCallback!: (data: NetworkData) => void;
   private downloadHistory: number[] = [];
   private uploadHistory: number[] = [];
   private readonly maxHistoryPoints = 60;
-  private previousStats: Map<string, NetworkStats> = new Map();
   private interfaceRows: Map<string, Adw.ExpanderRow> = new Map();
 
   constructor() {
     this.utils = UtilsService.instance;
+    this.networkService = NetworkService.instance;
     const builder = Gtk.Builder.new();
     
     try {
@@ -65,41 +58,104 @@ export class NetworkComponent {
       this.drawLineChart(cr, width, height);
     });
     
-    // Load network interfaces
-    this.loadNetworkInterfaces();
-    
-    // Initial update
-    this.updateData();
-    
-    // Update every 2 seconds
-    this.updateTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
-      this.updateData();
-      return GLib.SOURCE_CONTINUE;
-    });
+    // Subscribe to network service
+    this.dataCallback = this.onDataUpdate.bind(this);
+    this.networkService.subscribeToUpdates(this.dataCallback);
   }
 
-  private loadNetworkInterfaces(): void {
-    try {
-      const [ifconfigOut] = this.utils.executeCommand('ip', ['link', 'show']);
-      const lines = ifconfigOut.split('\n');
+  private onDataUpdate(data: NetworkData): void {
+    // Calculate totals
+    let totalRxBytes = 0;
+    let totalTxBytes = 0;
+    let totalDownloadSpeed = 0;
+    let totalUploadSpeed = 0;
+    
+    for (const iface of data.interfaces) {
+      if (iface.name === 'lo') continue;
+      totalRxBytes += iface.rxBytes;
+      totalTxBytes += iface.txBytes;
       
-      for (const line of lines) {
-        if (line.match(/^\d+:/)) {
-          const match = line.match(/^\d+:\s+([^:]+):/);
-          if (match) {
-            const interfaceName = match[1].trim();
-            if (interfaceName !== 'lo') {
-              this.createInterfaceRow(interfaceName);
-            }
-          }
-        }
+      // Parse speed strings to get bytes per second
+      const rxMatch = iface.rxSpeed.match(/([\d.]+)\s*([KMGT]?B)/);
+      const txMatch = iface.txSpeed.match(/([\d.]+)\s*([KMGT]?B)/);
+      
+      if (rxMatch) {
+        const value = parseFloat(rxMatch[1]);
+        const unit = rxMatch[2];
+        const multiplier = unit === 'KB' ? 1024 : unit === 'MB' ? 1024*1024 : unit === 'GB' ? 1024*1024*1024 : 1;
+        totalDownloadSpeed += value * multiplier;
       }
-    } catch (error) {
-      console.error('Error loading network interfaces:', error);
+      
+      if (txMatch) {
+        const value = parseFloat(txMatch[1]);
+        const unit = txMatch[2];
+        const multiplier = unit === 'KB' ? 1024 : unit === 'MB' ? 1024*1024 : unit === 'GB' ? 1024*1024*1024 : 1;
+        totalUploadSpeed += value * multiplier;
+      }
+    }
+    
+    // Update speed labels
+    this.networkDownloadSpeed.set_label(this.formatSpeed(totalDownloadSpeed));
+    this.networkUploadSpeed.set_label(this.formatSpeed(totalUploadSpeed));
+    this.networkTotalDownload.set_label(this.utils.formatBytes(totalRxBytes));
+    this.networkTotalUpload.set_label(this.utils.formatBytes(totalTxBytes));
+    
+    // Update history for chart (convert to Mbps)
+    const downloadMbps = (totalDownloadSpeed * 8) / 1000000;
+    const uploadMbps = (totalUploadSpeed * 8) / 1000000;
+    
+    this.downloadHistory.push(downloadMbps);
+    if (this.downloadHistory.length > this.maxHistoryPoints) {
+      this.downloadHistory.shift();
+    }
+    
+    this.uploadHistory.push(uploadMbps);
+    if (this.uploadHistory.length > this.maxHistoryPoints) {
+      this.uploadHistory.shift();
+    }
+    
+    // Update interface details
+    for (const iface of data.interfaces) {
+      if (iface.name === 'lo') continue;
+      
+      let expanderRow = this.interfaceRows.get(iface.name);
+      if (!expanderRow) {
+        expanderRow = this.createInterfaceRow(iface.name);
+      }
+      
+      expanderRow.set_subtitle(`Status: ${iface.state}`);
+      
+      const ipLabel = (expanderRow as any)._ipLabel as Gtk.Label;
+      if (ipLabel) ipLabel.set_label(iface.ipv4 || 'No IP');
+      
+      const macLabel = (expanderRow as any)._macLabel as Gtk.Label;
+      if (macLabel) macLabel.set_label(iface.mac || '-');
+      
+      const speedLabel = (expanderRow as any)._speedLabel as Gtk.Label;
+      if (speedLabel) speedLabel.set_label('-'); // Speed not in current interface
+      
+      const rxLabel = (expanderRow as any)._rxLabel as Gtk.Label;
+      if (rxLabel) rxLabel.set_label(this.utils.formatBytes(iface.rxBytes));
+      
+      const txLabel = (expanderRow as any)._txLabel as Gtk.Label;
+      if (txLabel) txLabel.set_label(this.utils.formatBytes(iface.txBytes));
+    }
+    
+    // Redraw chart
+    this.networkChart.queue_draw();
+  }
+  
+  private formatSpeed(bytesPerSecond: number): string {
+    if (bytesPerSecond < 1024) {
+      return `${bytesPerSecond.toFixed(2)} B/s`;
+    } else if (bytesPerSecond < 1024 * 1024) {
+      return `${(bytesPerSecond / 1024).toFixed(2)} KB/s`;
+    } else {
+      return `${(bytesPerSecond / (1024 * 1024)).toFixed(2)} MB/s`;
     }
   }
 
-  private createInterfaceRow(interfaceName: string): void {
+  private createInterfaceRow(interfaceName: string): Adw.ExpanderRow {
     const expanderRow = new Adw.ExpanderRow({
       title: interfaceName,
       subtitle: 'Loading...',
@@ -166,160 +222,8 @@ export class NetworkComponent {
     (expanderRow as any)._speedLabel = speedLabel;
     (expanderRow as any)._rxLabel = rxLabel;
     (expanderRow as any)._txLabel = txLabel;
-  }
-
-  private updateData(): void {
-    try {
-      const currentStats = this.getNetworkStats();
-      let totalDownloadSpeed = 0;
-      let totalUploadSpeed = 0;
-      let totalRxBytes = 0;
-      let totalTxBytes = 0;
-      
-      for (const [iface, stats] of currentStats) {
-        if (iface === 'lo') continue;
-        
-        totalRxBytes += stats.rxBytes;
-        totalTxBytes += stats.txBytes;
-        
-        const previous = this.previousStats.get(iface);
-        if (previous) {
-          const downloadSpeed = (stats.rxBytes - previous.rxBytes) / 2; // bytes per second
-          const uploadSpeed = (stats.txBytes - previous.txBytes) / 2;
-          
-          totalDownloadSpeed += downloadSpeed;
-          totalUploadSpeed += uploadSpeed;
-        }
-        
-        // Update interface details
-        this.updateInterfaceDetails(iface, stats);
-      }
-      
-      this.previousStats = currentStats;
-      
-      // Update speed labels
-      this.networkDownloadSpeed.set_label(this.formatSpeed(totalDownloadSpeed));
-      this.networkUploadSpeed.set_label(this.formatSpeed(totalUploadSpeed));
-      this.networkTotalDownload.set_label(this.utils.formatBytes(totalRxBytes));
-      this.networkTotalUpload.set_label(this.utils.formatBytes(totalTxBytes));
-      
-      // Update history (convert to Mbps for chart)
-      const downloadMbps = (totalDownloadSpeed * 8) / 1000000;
-      const uploadMbps = (totalUploadSpeed * 8) / 1000000;
-      
-      this.downloadHistory.push(downloadMbps);
-      if (this.downloadHistory.length > this.maxHistoryPoints) {
-        this.downloadHistory.shift();
-      }
-      
-      this.uploadHistory.push(uploadMbps);
-      if (this.uploadHistory.length > this.maxHistoryPoints) {
-        this.uploadHistory.shift();
-      }
-      
-      // Redraw chart
-      this.networkChart.queue_draw();
-    } catch (error) {
-      console.error('Error updating network data:', error);
-    }
-  }
-
-  private getNetworkStats(): Map<string, NetworkStats> {
-    const stats = new Map<string, NetworkStats>();
     
-    try {
-      const [netDevOut] = this.utils.executeCommand('cat', ['/proc/net/dev']);
-      const lines = netDevOut.split('\n').slice(2); // Skip header lines
-      
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        
-        const parts = line.trim().split(/\s+/);
-        if (parts.length < 10) continue;
-        
-        const iface = parts[0].replace(':', '');
-        const rxBytes = parseInt(parts[1]) || 0;
-        const rxPackets = parseInt(parts[2]) || 0;
-        const txBytes = parseInt(parts[9]) || 0;
-        const txPackets = parseInt(parts[10]) || 0;
-        
-        stats.set(iface, {
-          interface: iface,
-          rxBytes,
-          txBytes,
-          rxPackets,
-          txPackets,
-        });
-      }
-    } catch (error) {
-      console.error('Error getting network stats:', error);
-    }
-    
-    return stats;
-  }
-
-  private updateInterfaceDetails(iface: string, stats: NetworkStats): void {
-    const expanderRow = this.interfaceRows.get(iface);
-    if (!expanderRow) return;
-    
-    try {
-      // Get IP address
-      const [ipOut] = this.utils.executeCommand('ip', ['addr', 'show', iface]);
-      let ipAddress = 'No IP';
-      let status = 'DOWN';
-      
-      if (ipOut.includes('state UP')) {
-        status = 'UP';
-      }
-      
-      const ipMatch = ipOut.match(/inet\s+([0-9.]+)/);
-      if (ipMatch) {
-        ipAddress = ipMatch[1];
-      }
-      
-      expanderRow.set_subtitle(`Status: ${status}`);
-      
-      const ipLabel = (expanderRow as any)._ipLabel as Gtk.Label;
-      if (ipLabel) ipLabel.set_label(ipAddress);
-      
-      // Get MAC address
-      const macMatch = ipOut.match(/link\/ether\s+([0-9a-f:]+)/);
-      if (macMatch) {
-        const macLabel = (expanderRow as any)._macLabel as Gtk.Label;
-        if (macLabel) macLabel.set_label(macMatch[1]);
-      }
-      
-      // Get link speed
-      try {
-        const [speedOut] = this.utils.executeCommand('cat', [`/sys/class/net/${iface}/speed`]);
-        const speed = parseInt(speedOut.trim());
-        if (!isNaN(speed) && speed > 0) {
-          const speedLabel = (expanderRow as any)._speedLabel as Gtk.Label;
-          if (speedLabel) speedLabel.set_label(`${speed} Mbps`);
-        }
-      } catch {
-        // Speed not available for this interface
-      }
-      
-      // Update received/transmitted
-      const rxLabel = (expanderRow as any)._rxLabel as Gtk.Label;
-      const txLabel = (expanderRow as any)._txLabel as Gtk.Label;
-      if (rxLabel) rxLabel.set_label(this.utils.formatBytes(stats.rxBytes));
-      if (txLabel) txLabel.set_label(this.utils.formatBytes(stats.txBytes));
-      
-    } catch (error) {
-      console.error(`Error updating interface ${iface}:`, error);
-    }
-  }
-
-  private formatSpeed(bytesPerSecond: number): string {
-    if (bytesPerSecond < 1024) {
-      return `${bytesPerSecond.toFixed(2)} B/s`;
-    } else if (bytesPerSecond < 1024 * 1024) {
-      return `${(bytesPerSecond / 1024).toFixed(2)} KB/s`;
-    } else {
-      return `${(bytesPerSecond / (1024 * 1024)).toFixed(2)} MB/s`;
-    }
+    return expanderRow;
   }
 
   private drawLineChart(cr: any, width: number, height: number): void {
@@ -438,9 +342,6 @@ export class NetworkComponent {
   }
 
   public destroy(): void {
-    if (this.updateTimeoutId !== null) {
-      GLib.source_remove(this.updateTimeoutId);
-      this.updateTimeoutId = null;
-    }
+    this.networkService.unsubscribe(this.dataCallback);
   }
 }

@@ -30,7 +30,7 @@
       <object class="AdwNavigationSplitView" id="split_view">
         <property name="sidebar">
           <object class="AdwNavigationPage">
-            <property name="title" translatable="yes">Sidebar</property>
+            <property name="title" translatable="yes">Obision System</property>
             <property name="child">
               <object class="AdwToolbarView">
                 <child type="top">
@@ -114,7 +114,7 @@
                             <property name="margin-bottom">8</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">utilities-system-monitor-symbolic</property>
+                                <property name="icon-name">drive-harddisk-solidstate-symbolic</property>
                               </object>
                             </child>
                             <child>
@@ -255,36 +255,7 @@
                         <property name="margin-bottom">2</property>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkToggleButton" id="menu_option_7">
-                        <property name="halign">fill</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="orientation">horizontal</property>
-                            <property name="spacing">12</property>
-                            <property name="margin-start">6</property>
-                            <property name="margin-end">6</property>
-                            <property name="margin-top">8</property>
-                            <property name="margin-bottom">8</property>
-                            <child>
-                              <object class="GtkImage">
-                                <property name="icon-name">dialog-information-symbolic</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="label" translatable="yes">Resources</property>
-                                <property name="halign">start</property>
-                                <property name="hexpand">true</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
+
                     <child>
                       <object class="GtkToggleButton" id="menu_option_8">
                         <property name="halign">fill</property>
@@ -465,17 +436,6 @@
                         </style>
                       </object>
                     </property>
-                    <child type="start">
-                      <object class="GtkButton" id="action_button">
-                        <property name="label" translatable="yes">Action</property>
-                      </object>
-                    </child>
-                    <child type="end">
-                      <object class="GtkButton" id="close_button">
-                        <property name="icon-name">window-close-symbolic</property>
-                        <property name="tooltip-text" translatable="yes">Close</property>
-                      </object>
-                    </child>
                   </object>
                 </child>
                 <property name="content">

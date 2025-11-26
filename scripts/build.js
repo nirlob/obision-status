@@ -55,6 +55,10 @@ function cleanJSContent(content) {
         .replace(/utils_service_1\.UtilsService/g, 'UtilsService')
         .replace(/settings_service_1\.SettingsService/g, 'SettingsService')
         .replace(/data_service_1\.DataService/g, 'DataService')
+        .replace(/resume_service_1\.ResumeService/g, 'ResumeService')
+        .replace(/network_service_1\.NetworkService/g, 'NetworkService')
+        .replace(/processes_service_1\.ProcessesService/g, 'ProcessesService')
+        .replace(/logs_service_1\.LogsService/g, 'LogsService')
         
         // Remove other artifacts
         .replace(/\s*void 0;\s*\n?/g, '')
@@ -130,6 +134,78 @@ if (fs.existsSync(utilsServiceFile)) {
     utilsServiceContent = cleanJSContent(utilsServiceContent);
 
     combinedContent += utilsServiceContent + '\n';
+}
+
+// Add ResumeService service
+const resumeServiceFile = path.join(BUILD_DIR, 'services', 'resume-service.js');
+if (fs.existsSync(resumeServiceFile)) {
+    console.log('📋 Adding ResumeService service...');
+    let resumeServiceContent = fs.readFileSync(resumeServiceFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = resumeServiceContent.indexOf('class ResumeService {');
+    if (classStartIndex !== -1) {
+        resumeServiceContent = resumeServiceContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    resumeServiceContent = cleanJSContent(resumeServiceContent);
+
+    combinedContent += resumeServiceContent + '\n';
+}
+
+// Add NetworkService service
+const networkServiceFile = path.join(BUILD_DIR, 'services', 'network-service.js');
+if (fs.existsSync(networkServiceFile)) {
+    console.log('📋 Adding NetworkService service...');
+    let networkServiceContent = fs.readFileSync(networkServiceFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = networkServiceContent.indexOf('class NetworkService {');
+    if (classStartIndex !== -1) {
+        networkServiceContent = networkServiceContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    networkServiceContent = cleanJSContent(networkServiceContent);
+
+    combinedContent += networkServiceContent + '\n';
+}
+
+// Add ProcessesService service
+const processesServiceFile = path.join(BUILD_DIR, 'services', 'processes-service.js');
+if (fs.existsSync(processesServiceFile)) {
+    console.log('📋 Adding ProcessesService service...');
+    let processesServiceContent = fs.readFileSync(processesServiceFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = processesServiceContent.indexOf('class ProcessesService {');
+    if (classStartIndex !== -1) {
+        processesServiceContent = processesServiceContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    processesServiceContent = cleanJSContent(processesServiceContent);
+
+    combinedContent += processesServiceContent + '\n';
+}
+
+// Add LogsService service
+const logsServiceFile = path.join(BUILD_DIR, 'services', 'logs-service.js');
+if (fs.existsSync(logsServiceFile)) {
+    console.log('📋 Adding LogsService service...');
+    let logsServiceContent = fs.readFileSync(logsServiceFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = logsServiceContent.indexOf('class LogsService {');
+    if (classStartIndex !== -1) {
+        logsServiceContent = logsServiceContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    logsServiceContent = cleanJSContent(logsServiceContent);
+
+    combinedContent += logsServiceContent + '\n';
 }
 
 // Add DataService service
@@ -469,6 +545,20 @@ if (fs.existsSync(dataUiSrc)) {
 
 if (fs.existsSync(dataJsonSrc)) {
     execSync(`cp ${dataJsonSrc} ${dataJsonDest}`, { stdio: 'pipe' });
+}
+
+// Copy and compile GSettings schema
+const schemaFile = 'data/com.obysion.ObysionSystem.gschema.xml';
+const schemaDestDir = path.join(BUILD_DIR, 'data');
+const schemaDest = path.join(schemaDestDir, 'com.obysion.ObysionSystem.gschema.xml');
+
+if (fs.existsSync(schemaFile)) {
+    execSync(`mkdir -p ${schemaDestDir} && cp ${schemaFile} ${schemaDest}`, { stdio: 'pipe' });
+    try {
+        execSync(`glib-compile-schemas ${schemaDestDir}`, { stdio: 'pipe' });
+    } catch (e) {
+        console.log('⚠️  Warning: Failed to compile GSettings schema');
+    }
 }
 
 console.log('✅ Build completed successfully!');

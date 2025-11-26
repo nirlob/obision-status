@@ -265,7 +265,7 @@
           </object>
         </child>
         
-        <!-- CPU Temperature Box - Row 1, Column 2 -->
+        <!-- CPU Temperature Box - Row 2, Column 0 -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -275,8 +275,8 @@
               <class name="card"/>
             </style>
             <layout>
-              <property name="column">2</property>
-              <property name="row">1</property>
+              <property name="column">0</property>
+              <property name="row">2</property>
             </layout>
             <child>
               <object class="GtkBox">
@@ -316,7 +316,7 @@
           </object>
         </child>
         
-        <!-- GPU Temperature Box - Row 2, Column 0 -->
+        <!-- GPU Temperature Box - Row 2, Column 1 -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -326,7 +326,7 @@
               <class name="card"/>
             </style>
             <layout>
-              <property name="column">0</property>
+              <property name="column">1</property>
               <property name="row">2</property>
             </layout>
             <child>
@@ -367,7 +367,7 @@
           </object>
         </child>
         
-        <!-- System Load Box - Row 2, Column 1 -->
+        <!-- System Load Box - Row 2, Column 2 -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -377,7 +377,7 @@
               <class name="card"/>
             </style>
             <layout>
-              <property name="column">1</property>
+              <property name="column">2</property>
               <property name="row">2</property>
             </layout>
             <child>
@@ -536,7 +536,7 @@
           </object>
         </child>
         
-        <!-- Top Processes Box - Row 2, Column 2 -->
+        <!-- Top Processes Box - Row 1, Column 2 -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -547,7 +547,7 @@
             </style>
             <layout>
               <property name="column">2</property>
-              <property name="row">2</property>
+              <property name="row">1</property>
             </layout>
             <child>
               <object class="GtkBox">
