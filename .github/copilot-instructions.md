@@ -1,7 +1,7 @@
-# Obision Status - AI Agent Instructions
+# Obysion System - AI Agent Instructions
 
 ## Project Overview
-A GNOME system status application built with TypeScript, GTK4, and Libadwaita. Displays system information using a responsive navigation split-view layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`).
+A GNOME system monitoring application built with TypeScript, GTK4, and Libadwaita. Displays system information using a responsive navigation split-view layout. Uses a **hybrid build system**: TypeScript → GJS-compatible JavaScript via custom Node.js build script (`scripts/build.js`).
 
 ## Critical Build System
 **NEVER use `tsc` directly.** Always use `npm run build` which:

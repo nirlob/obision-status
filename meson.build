@@ -1,4 +1,4 @@
-project('obision-status',
+project('obysion-system',
   version: '1.0.0',
   meson_version: '>= 0.59.0',
 )
@@ -6,7 +6,7 @@ project('obision-status',
 gnome = import('gnome')
 
 # Application ID
-app_id = 'com.obision.ObisionStatus'
+app_id = 'com.obysion.ObysionSystem'
 
 # Configuration
 conf = configuration_data()
@@ -74,8 +74,8 @@ install_data('data/icons/hicolor/scalable/apps/' + app_id + '.svg',
 
 # Create launcher script
 configure_file(
-  input: 'bin/obision-status.in',
-  output: 'obision-status',
+  input: 'bin/obysion-system.in',
+  output: 'obysion-system',
   configuration: conf,
   install: true,
   install_dir: bindir,
