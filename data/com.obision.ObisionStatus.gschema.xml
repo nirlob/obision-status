@@ -2,19 +2,34 @@
 <schemalist gettext-domain="obision-status">
   <schema id="com.obision.obision-status" path="/com/obision/obision-status/">
     <key name="window-width" type="i">
-      <default>800</default>
-      <summary>Default window width</summary>
-      <description>The default width of the application window</description>
+      <default>1200</default>
+      <summary>Window width</summary>
+      <description>The width of the application window</description>
     </key>
     <key name="window-height" type="i">
-      <default>600</default>
-      <summary>Default window height</summary>
-      <description>The default height of the application window</description>
+      <default>800</default>
+      <summary>Window height</summary>
+      <description>The height of the application window</description>
     </key>
-    <key name="counter-value" type="i">
-      <default>0</default>
-      <summary>Counter value</summary>
-      <description>The current value of the counter</description>
+    <key name="window-x" type="i">
+      <default>-1</default>
+      <summary>Window X position</summary>
+      <description>The X position of the application window (-1 for default)</description>
+    </key>
+    <key name="window-y" type="i">
+      <default>-1</default>
+      <summary>Window Y position</summary>
+      <description>The Y position of the application window (-1 for default)</description>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+      <summary>Window maximized state</summary>
+      <description>Whether the window is maximized</description>
+    </key>
+    <key name="refresh-interval" type="i">
+      <default>10</default>
+      <summary>Refresh interval</summary>
+      <description>The refresh interval in seconds for updating system information</description>
     </key>
   </schema>
 </schemalist>

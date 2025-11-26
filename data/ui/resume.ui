@@ -265,7 +265,7 @@
           </object>
         </child>
         
-        <!-- Top Processes Box - Row 1, Column 2 -->
+        <!-- CPU Temperature Box - Row 1, Column 2 -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -277,6 +277,277 @@
             <layout>
               <property name="column">2</property>
               <property name="row">1</property>
+            </layout>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">CPU Temp</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="cpu_temp_chart">
+                    <property name="width-request">120</property>
+                    <property name="height-request">120</property>
+                    <property name="halign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="cpu_temp_value">
+                    <property name="label">--</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-2"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- GPU Temperature Box - Row 2, Column 0 -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">2</property>
+            </layout>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">GPU Temp</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="gpu_temp_chart">
+                    <property name="width-request">120</property>
+                    <property name="height-request">120</property>
+                    <property name="halign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="gpu_temp_value">
+                    <property name="label">--</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-2"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- System Load Box - Row 2, Column 1 -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">2</property>
+            </layout>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">System Load</property>
+                    <property name="halign">center</property>
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">16</property>
+                    <property name="halign">fill</property>
+                    <property name="valign">center</property>
+                    <property name="vexpand">true</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
+                    <!-- 1 minute load -->
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">4</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">8</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">1 min</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="load_1min">
+                                <property name="label">--</property>
+                                <property name="halign">end</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLevelBar" id="load_1min_bar">
+                            <property name="hexpand">true</property>
+                            <property name="min-value">0</property>
+                            <property name="max-value">8</property>
+                            <property name="value">0</property>
+                            <property name="mode">continuous</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <!-- 5 minute load -->
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">4</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">8</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">5 min</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="load_5min">
+                                <property name="label">--</property>
+                                <property name="halign">end</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLevelBar" id="load_5min_bar">
+                            <property name="hexpand">true</property>
+                            <property name="min-value">0</property>
+                            <property name="max-value">8</property>
+                            <property name="value">0</property>
+                            <property name="mode">continuous</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <!-- 15 minute load -->
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">4</property>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">8</property>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">15 min</property>
+                                <property name="halign">start</property>
+                                <property name="hexpand">true</property>
+                                <style>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="load_15min">
+                                <property name="label">--</property>
+                                <property name="halign">end</property>
+                                <attributes>
+                                  <attribute name="weight" value="bold"/>
+                                </attributes>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLevelBar" id="load_15min_bar">
+                            <property name="hexpand">true</property>
+                            <property name="min-value">0</property>
+                            <property name="max-value">8</property>
+                            <property name="value">0</property>
+                            <property name="mode">continuous</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        
+        <!-- Top Processes Box - Row 2, Column 2 -->
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <property name="hexpand">true</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">2</property>
             </layout>
             <child>
               <object class="GtkBox">
@@ -316,7 +587,7 @@
           </object>
         </child>
         
-        <!-- System Information Box - Row 2, spans all 3 columns -->
+        <!-- System Information Box - Row 3, spans all 3 columns -->
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -327,7 +598,7 @@
             </style>
             <layout>
               <property name="column">0</property>
-              <property name="row">2</property>
+              <property name="row">3</property>
               <property name="column-span">3</property>
             </layout>
             <child>

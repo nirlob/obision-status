@@ -2,6 +2,7 @@ import Gio from '@girs/gio-2.0';
 import Gtk from '@girs/gtk-4.0';
 import Gdk from '@girs/gdk-4.0';
 import Adw from '@girs/adw-1';
+import { SettingsService } from './services/settings-service';
 import { ResumeComponent } from './components/resume';
 import { CpuComponent } from './components/cpu';
 import { GpuComponent } from './components/gpu';
@@ -45,7 +46,10 @@ class ObisionStatusApplication {
 
     const preferencesAction = new Gio.SimpleAction({ name: 'preferences' });
     preferencesAction.connect('activate', () => {
-      console.log('Preferences action activated');
+      const windows = this.application.get_windows();
+      if (windows.length > 0) {
+        this.showPreferencesDialog(windows[0]);
+      }
     });
     this.application.add_action(preferencesAction);
 
@@ -106,6 +110,29 @@ class ObisionStatusApplication {
 
     const window = builder.get_object('application_window') as Adw.ApplicationWindow;
     window.set_application(this.application);
+
+    // Load window state from settings
+    const settings = SettingsService.instance;
+    const width = settings.getWindowWidth();
+    const height = settings.getWindowHeight();
+    const x = settings.getWindowX();
+    const y = settings.getWindowY();
+    const maximized = settings.getWindowMaximized();
+
+    window.set_default_size(width, height);
+    
+    if (maximized) {
+      window.maximize();
+    }
+
+    // Save window state on close
+    window.connect('close-request', () => {
+      const [currentWidth, currentHeight] = window.get_default_size();
+      settings.setWindowWidth(currentWidth);
+      settings.setWindowHeight(currentHeight);
+      settings.setWindowMaximized(window.is_maximized());
+      return false;
+    });
 
     console.log('Setting up UI with loaded content');
 
@@ -319,6 +346,39 @@ class ObisionStatusApplication {
     });
 
     aboutDialog.present();
+  }
+
+  private showPreferencesDialog(parent: Gtk.Window): void {
+    const builder = Gtk.Builder.new();
+    
+    try {
+      try {
+        builder.add_from_file('/usr/share/com.obision.ObisionStatus/ui/preferences.ui');
+      } catch (e) {
+        builder.add_from_file('data/ui/preferences.ui');
+      }
+    } catch (e) {
+      console.error('Could not load preferences.ui:', e);
+      return;
+    }
+
+    const prefsWindow = builder.get_object('preferences_window') as Adw.PreferencesWindow;
+    const refreshIntervalSpin = builder.get_object('refresh_interval_spin') as Gtk.SpinButton;
+
+    prefsWindow.set_transient_for(parent);
+
+    // Load current settings
+    const settings = SettingsService.instance;
+    refreshIntervalSpin.set_value(settings.getRefreshInterval());
+
+    // Save settings when changed
+    refreshIntervalSpin.connect('value-changed', () => {
+      const value = refreshIntervalSpin.get_value();
+      settings.setRefreshInterval(value);
+      console.log(`Refresh interval changed to ${value} seconds`);
+    });
+
+    prefsWindow.present();
   }
 
   public run(argv: string[]): number {

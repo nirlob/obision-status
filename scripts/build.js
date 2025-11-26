@@ -51,6 +51,11 @@ function cleanJSContent(content) {
         .replace(/pango_1_0_1\.default\./g, 'Pango.')
         .replace(/adw_1_1\.default\./g, 'Adw.')
         
+        // Replace service references
+        .replace(/utils_service_1\.UtilsService/g, 'UtilsService')
+        .replace(/settings_service_1\.SettingsService/g, 'SettingsService')
+        .replace(/data_service_1\.DataService/g, 'DataService')
+        
         // Remove other artifacts
         .replace(/\s*void 0;\s*\n?/g, '')
         .replace(/^\s*\n/gm, '') // Remove empty lines
@@ -89,6 +94,24 @@ if (fs.existsSync(categoryInterfaceFile)) {
     let categoryInterfaceContent = fs.readFileSync(categoryInterfaceFile, 'utf8');
     // Extract interface definitions (they will be removed by transpilation)
     console.log('📋 Adding interfaces...');
+}
+
+// Add SettingsService service
+const settingsServiceFile = path.join(BUILD_DIR, 'services', 'settings-service.js');
+if (fs.existsSync(settingsServiceFile)) {
+    console.log('📋 Adding SettingsService service...');
+    let settingsServiceContent = fs.readFileSync(settingsServiceFile, 'utf8');
+
+    // Clean up the content - find the class definition start
+    const classStartIndex = settingsServiceContent.indexOf('class SettingsService {');
+    if (classStartIndex !== -1) {
+        settingsServiceContent = settingsServiceContent.substring(classStartIndex);
+    }
+
+    // Clean up TypeScript/CommonJS artifacts using our function
+    settingsServiceContent = cleanJSContent(settingsServiceContent);
+
+    combinedContent += settingsServiceContent + '\n';
 }
 
 // Add UtilsService service
