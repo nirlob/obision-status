@@ -91,20 +91,39 @@
     <circle cx="512" cy="512" r="330" fill="url(#innerShadow)" />
   </g>
 
-  <!-- White install icon (box + arrow), centered -->
-  <g id="install-icon" transform="translate(512,512)">
-    <!-- Open box -->
-    <!-- Front panel -->
-    <path d="M -120,40 L 120,40 L 90,140 L -90,140 Z" fill="#ffffff" />
-    <!-- Left flap -->
-    <path d="M -120,40 L -200,-20 L -90,-60 L -30,40 Z" fill="#ffffff" />
-    <!-- Right flap -->
-    <path d="M 120,40 L 200,-20 L 90,-60 L 30,40 Z" fill="#ffffff" />
-    <!-- Back panel (slight inset) -->
-    <path d="M -90,140 L 90,140 L 70,60 L -70,60 Z" fill="#ffffff" />
-
-    <!-- Down arrow -->
-    <path d="M -60,-200 L 60,-200 L 60,-120 L 120,-120 L 0,0 L -120,-120 L -60,-120 Z"
-          fill="#ffffff" />
+  <!-- White line chart icon, centered -->
+  <g id="chart-icon" transform="translate(512,512)">
+    <!-- Chart background rectangle with rounded corners -->
+    <rect x="-180" y="-140" width="360" height="280" rx="20" fill="#ffffff" opacity="0.15" />
+    
+    <!-- Grid lines (horizontal) -->
+    <line x1="-160" y1="-80" x2="160" y2="-80" stroke="#ffffff" stroke-width="3" opacity="0.3" />
+    <line x1="-160" y1="-20" x2="160" y2="-20" stroke="#ffffff" stroke-width="3" opacity="0.3" />
+    <line x1="-160" y1="40" x2="160" y2="40" stroke="#ffffff" stroke-width="3" opacity="0.3" />
+    <line x1="-160" y1="100" x2="160" y2="100" stroke="#ffffff" stroke-width="3" opacity="0.3" />
+    
+    <!-- Main chart line (system monitoring graph) -->
+    <path d="M -160,80 L -120,40 L -80,60 L -40,20 L 0,-40 L 40,-20 L 80,-60 L 120,-40 L 160,0"
+          fill="none" 
+          stroke="#ffffff" 
+          stroke-width="10" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+    
+    <!-- Area fill under the line -->
+    <path d="M -160,80 L -120,40 L -80,60 L -40,20 L 0,-40 L 40,-20 L 80,-60 L 120,-40 L 160,0 L 160,120 L -160,120 Z"
+          fill="#ffffff" 
+          opacity="0.25" />
+    
+    <!-- Data points on the line -->
+    <circle cx="-160" cy="80" r="8" fill="#ffffff" />
+    <circle cx="-120" cy="40" r="8" fill="#ffffff" />
+    <circle cx="-80" cy="60" r="8" fill="#ffffff" />
+    <circle cx="-40" cy="20" r="8" fill="#ffffff" />
+    <circle cx="0" cy="-40" r="8" fill="#ffffff" />
+    <circle cx="40" cy="-20" r="8" fill="#ffffff" />
+    <circle cx="80" cy="-60" r="8" fill="#ffffff" />
+    <circle cx="120" cy="-40" r="8" fill="#ffffff" />
+    <circle cx="160" cy="0" r="8" fill="#ffffff" />
   </g>
 </svg>

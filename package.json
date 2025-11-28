@@ -10,10 +10,9 @@
     "clean": "rm -rf builddir && rm -rf mesonbuilddir",
     "meson-setup": "meson setup mesonbuilddir --prefix=/usr",
     "meson-compile": "meson compile -C mesonbuilddir",
-    "meson-install": "npm run build && npm run meson-setup && npm run meson-compile && cd mesonbuilddir && meson install",
-    "meson-uninstall": "cd mesonbuilddir && ninja uninstall && cd .. && npm run meson-clean",
-    "meson-clean": "rm -rf mesonbuilddir builddir",
-    "install-data": "sudo mkdir -p /var/lib/obision-status/data/icons && sudo cp data/applications.json /var/lib/obision-status/ && sudo cp -r data/icons/applications /var/lib/obision-status/data/icons/ && sudo cp -r data/icons/categories /var/lib/obision-status/data/icons/"
+    "meson-install": "npm run build && npm run meson-setup && npm run meson-compile && cd mesonbuilddir && sudo meson install",
+    "meson-uninstall": "cd mesonbuilddir && sudo ninja uninstall && cd .. && npm run meson-clean",
+    "meson-clean": "rm -rf mesonbuilddir builddir && rm -f data/gschemas.compiled*"
   },
   "keywords": [
     "gnome",
@@ -21,6 +20,8 @@
     "gjs",
     "typescript",
     "status",
+    "monitor",
+    "system",
     "obision"
   ],
   "author": "Jose Francisco Gonzalez",

@@ -59,18 +59,18 @@ install_data('data/' + app_id + '.gschema.xml',
   install_dir: datadir / 'glib-2.0' / 'schemas'
 )
 
-# Install icons (commented out - icons don't exist yet)
+# Install icons
 install_data('data/icons/hicolor/scalable/apps/' + app_id + '.svg',
   install_dir: datadir / 'icons' / 'hicolor' / 'scalable' / 'apps'
 )
 
-# install_data('data/icons/hicolor/48x48/apps/' + app_id + '.png',
-#   install_dir: datadir / 'icons' / 'hicolor' / '48x48' / 'apps'
-# )
+install_data('data/icons/hicolor/48x48/apps/' + app_id + '.png',
+  install_dir: datadir / 'icons' / 'hicolor' / '48x48' / 'apps'
+)
 
-# install_data('data/icons/hicolor/64x64/apps/' + app_id + '.png',
-#   install_dir: datadir / 'icons' / 'hicolor' / '64x64' / 'apps'
-# )
+install_data('data/icons/hicolor/64x64/apps/' + app_id + '.png',
+  install_dir: datadir / 'icons' / 'hicolor' / '64x64' / 'apps'
+)
 
 # Create launcher script
 configure_file(
